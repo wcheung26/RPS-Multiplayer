@@ -1,0 +1,56 @@
+body {
+	background-color: ivory;
+}
+
+.border {
+	border: solid 1px gray;
+	float: none;
+  	display: inline-block;
+  	text-align: center;
+  	margin: 0 20px;
+  	vertical-align: top;
+  	min-height: 200px;
+  	position: relative;
+  	padding: 0;
+}
+
+.center {
+	text-align: center;
+}
+
+.row {
+	text-align: center;
+	margin-bottom: 20px;
+}
+
+.header {
+	background-color: black;
+	color: white;
+	padding-bottom: 15px;
+}
+
+.score {
+	position: absolute;
+	bottom: 0px;
+	width: 100%;
+	box-sizing: border-box;
+	display: none;
+}
+
+.turn {
+	display: none;
+}
+
+.choice {
+	display: none;
+}
+
+.showMove, #result{
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	font-weight: bold;
+	font-size: 36px;
+	display: none;
+}

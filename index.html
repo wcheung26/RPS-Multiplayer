@@ -11,7 +11,50 @@
 	<script src="https://www.gstatic.com/firebasejs/live/3.0/firebase.js"></script>
 </head>
 <body>
-	
+	<div class="container"></div>
+		<div class="row">
+			<div class="col-xs-12 header">
+				<h1>Rock Paper Scissors</h1>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-xs-12">
+				<p id="nameEntry">
+					<form>
+						<input type="text" id="newPlayer">
+						<input type="submit" id="submit">
+					</form>
+				</p>
+				<p class="turn" id="p1_turn"></p>
+				<p class="turn" id="p2_turn"></p>
+			</div>
+		</div>
+		<div class="row center">
+			<div class="col-xs-3 border" id="p1_box">
+				<p id="p1_name">Waiting for Player 1</p>
+				<div class="choice" id="p1_choice">
+					<p class="move" id="p1_rock">Rock</p>
+					<p class="move" id="p1_paper">Paper</p>
+					<p class="move" id="p1_scissors">Scissors</p>
+				</div>
+				<p class="showMove" id="p1_showMove"></p>
+				<p class="score" id="p1_score">Wins: <span id="p1_wins">0</span> Losses: <span id="p1_losses">0</span></p>
+			</div>
+			<div class="col-xs-3 border">
+				<p id="result"></p>
+			</div>
+			<div class="col-xs-3 border" id="p2_box">
+				<p id="p2_name">Waiting for Player 2</p>
+				<div class="choice" id="p2_choice">
+					<p class="move" id="p2_rock">Rock</p>
+					<p class="move" id="p2_paper">Paper</p>
+					<p class="move" id="p2_scissors">Scissors</p>
+				</div>
+				<p class="showMove" id="p2_showMove"></p>
+				<p class="score" id="p2_score">Wins: <span id="p2_wins">0</span> Losses: <span id="p2_losses">0</span></p>
+			</div>
+		</div>
+
 	
 
 
