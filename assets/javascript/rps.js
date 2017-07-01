@@ -12,13 +12,12 @@ firebase.initializeApp(config);
 var database = firebase.database();
 
 // Only needed for initial push to Firebase
-var p1 = {name:"",wins:0,losses:0,ties:0};
-var p2 = {name:"",wins:0,losses:0,ties:0};
+var p1 = {name:"",wins:0,losses:0,ties:0,move:null};
+var p2 = {name:"",wins:0,losses:0,ties:0,move:null};
 // Global variables
-var p1_move;
-var p2_move;
-var currentTurn = "p1";
-
+// var p1_move;
+// var p2_move;
+var currentTurn = 1;
 // In case a player value is already stored for current session
 sessionStorage.removeItem("player");
 
@@ -28,7 +27,7 @@ database.ref("/players").once("value",function(snapshot){
 	if (snapshot.child("1").exists()) {
 		p1 = snapshot.child("1").val();
 		console.log("Pulled " + JSON.stringify(p1));
-	}
+	};
 	if (snapshot.child("2").exists()) {
 		p2 = snapshot.child("2").val();
 		console.log("Pulled " + JSON.stringify(p2));
@@ -38,18 +37,20 @@ database.ref("/players").once("value",function(snapshot){
 		$("#nameEntry").text("Game in progress!")
 		$("form").hide();
 		sessionStorage.setItem("player","spec");
-	}
+	};
 });
 
 // Reset players
 function resetPlayers() {
-	p1 = {name:"",wins:0,losses:0,ties:0};
-	p2 = {name:"",wins:0,losses:0,ties:0};
+	// p1 = {name:"",wins:0,losses:0,ties:0};
+	// p2 = {name:"",wins:0,losses:0,ties:0};
+	p1 = null
+	p2 = null
 	database.ref().set({
 		turn: 0
 	});
-	database.ref("/players/1").remove();
-	database.ref("/players/2").remove();
+	// // database.ref("/players/1").remove();
+	// // database.ref("/players/2").remove();
 	sessionStorage.removeItem("player");
 };
 
@@ -114,7 +115,7 @@ database.ref("/players").on("child_added",function(snapshot){
 		$("#p2_score").show();
 		p2 = snapshot.val();
 		// If two other players have joined, become spectator
-		if (sessionStorage.player !== "spec" && $("form").is(":visible")) {
+		if ($("form").is(":visible")) {
 			$("#nameEntry").text("Game in progress!")
 			$("form").hide();
 			sessionStorage.setItem("player","spec");
@@ -127,15 +128,19 @@ database.ref("/players").on("child_added",function(snapshot){
 
 // Listen to turn changes
 database.ref().on("child_changed",function(snapshot){
+	console.log("child changed",snapshot.val())
 	if (snapshot.key === "turn") {
 		// Pull new turn
 		currentTurn = snapshot.val();
+		console.log("Current turn: ", currentTurn)
 		if (currentTurn === 1) {
 			turn1();
 		} else if (currentTurn === 2) {
 			turn2();
 		} else if (currentTurn ===3) {
 			turn3();
+		} else {
+			console.log("Stay turn 0")
 		}
 		console.log("Turn change!")		
 	};
@@ -147,20 +152,51 @@ database.ref().on("child_changed",function(snapshot){
 database.ref("/players/1/").on('child_added' || 'child_changed',function(snapshot){
 	if (snapshot.key === "move") {
 		console.log("P1 Move: " + snapshot.val());
-		p1_move = snapshot.val();
-		$("#p1_showMove").text(p1_move);
+		p1.move = snapshot.val();
+		$("#p1_showMove").text(p1.move);
 		$("#p1_showMove").show();
 	};
 });
 
 database.ref("/players/2/").on('child_added' || 'child_changed',function(snapshot){
+	debugger
 	if (snapshot.key === "move") {
 		console.log("P2 Move: " + snapshot.val());
-		p2_move = snapshot.val()
-		$("#p2_showMove").text(p2_move);
+		p2.move = snapshot.val()
+		$("#p2_showMove").text(p2.move);
 		$("#p2_showMove").show();
 	};
 });
+
+// Listen to win/loss changes
+database.ref("/players/1").on("child_changed",function(snapshot){
+	console.log("Player 1 child changed")
+	if (snapshot.key === "wins") {
+		p1.wins = snapshot.val();
+		$("#p1_wins").text(snapshot.val());		
+	} else if (snapshot.key === "ties") {
+		p1.ties = snapshot.val()
+		$("#p1_ties").text(snapshot.val());		
+	} else if (snapshot.key === "losses") {
+		p1.losses = snapshot.val();
+		$("#p1_losses").text(snapshot.val());		
+	}
+});
+
+database.ref("/players/2").on("child_changed",function(snapshot){
+	if (snapshot.key === "wins") {
+		p2.wins = snapshot.val();
+		$("#p2_wins").text(snapshot.val());		
+	} else if (snapshot.key === "ties") {
+		p2.ties = snapshot.val()
+		$("#p2_ties").text(snapshot.val());		
+	} else if (snapshot.key === "losses") {
+		p2.losses = snapshot.val();
+		$("#p2_losses").text(snapshot.val());
+	}
+});
+
+
 
 function turn1() {
 	// Common displays
@@ -198,11 +234,10 @@ function turn2() {
 
 function turn3() {
 	// Determine result
-	var result = compare(p1_move, p2_move);
-	console.log(result)
+	var result = compare(p1.move, p2.move);
+	console.log("Turn 3",result)
 	if (result === "p1_winner") {
 		$("#result").text(p1.name + " Wins!");
-		// debugger;
 		database.ref("/players").update({
 			"1/wins": p1.wins + 1,
 			"2/losses": p2.losses + 1
@@ -220,37 +255,22 @@ function turn3() {
 			"2/ties": p2.ties + 1
 		});
 	}
+	function resetTurn() {
+		debugger
+		database.ref().update({
+			turn: 1
+		})
+	};
 
-	p1_move = null;
-	p2_move = null;
+	setTimeout(resetTurn,3000);
 
-
-	// Listen to win/loss changes
-	database.ref("/players/1/").on("child_changed",function(snapshot){
-		if (snapshot.key === "wins") {
-			p1.wins = snapshot.val();
-			$("#p1_wins").text(snapshot.val());		
-		} else if (snapshot.key === "ties") {
-			p1.ties = snapshot.val()
-			$("#p1_ties").text(snapshot.val());		
-		} else if (snapshot.key === "losses") {
-			p1.losses = snapshot.val();
-			$("#p1_losses").text(snapshot.val());		
-		}
+	database.ref("/players").update({
+		"1/move": null,
+		"2/move": null
 	});
+	p1.move = null;
+	p2.move = null;
 
-	database.ref("/players/2/").on("child_changed",function(snapshot){
-		if (snapshot.key === "wins") {
-			p2.wins = snapshot.val();
-			$("#p2_wins").text(snapshot.val());		
-		} else if (snapshot.key === "ties") {
-			p2.ties = snapshot.val()
-			$("#p2_ties").text(snapshot.val());		
-		} else if (snapshot.key === "losses") {
-			p2.losses = snapshot.val();
-			$("#p2_losses").text(snapshot.val());
-		}
-	});
 	// Common displays
 	$("#result").show();
 	// Player-specific displays
@@ -276,8 +296,7 @@ function compare(m1,m2) {
 
 $(".move").on("click",function(){
 	// On click push choice to player 1
-	if (currentTurn === "p1") {
-		// debugger;
+	if (currentTurn === 1) {
 		database.ref("/players/1").update({
 			move: $(this).text()
 		});
@@ -296,10 +315,10 @@ $(".move").on("click",function(){
 });
 
 function run() {
-	// debugger;
-	database.ref().update({
-			turn: 1
-		});
+	console.log("RUN!")
+	// database.ref().update({
+	// 		turn: 1
+	// 	});
 	$(".showMove").hide();
 	$("#result").hide();
 
